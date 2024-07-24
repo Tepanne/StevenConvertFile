@@ -30,25 +30,6 @@ document.getElementById('convertCountButton').addEventListener('click', function
     document.getElementById('convertContactCount').value = `Jumlah kontak: ${contactCount}`;
 });
 
-// Fungsi untuk menghitung kontak di menu pecah file VCF
-document.getElementById('splitCountButton').addEventListener('click', function() {
-    const fileInput = document.getElementById('vcfFileInput');
-    const file = fileInput.files[0];
-    if (!file) {
-        alert('Harap pilih file VCF terlebih dahulu!');
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const vcfContent = e.target.result;
-        const contacts = vcfContent.split('END:VCARD').filter(entry => entry.trim()).map(entry => entry + 'END:VCARD');
-        const contactCount = contacts.length;
-        document.getElementById('splitContactCount').value = `Jumlah kontak: ${contactCount}`;
-    };
-    reader.readAsText(file);
-});
-
 // Fungsi untuk mengkonversi file teks ke VCF
 document.getElementById('convertButton').addEventListener('click', function() {
     const text = document.getElementById('fileContent').value.trim();
@@ -60,16 +41,13 @@ document.getElementById('convertButton').addEventListener('click', function() {
         return;
     }
 
-    // Function to ensure each phone number starts with '+'
     function ensurePlusSign(number) {
         return number.startsWith('+') ? number : `+${number}`;
     }
 
-    // Split the content into lines, add '+' if needed, and process each line
     const lines = text.split('\n').map(line => ensurePlusSign(line.trim()));
-    const contactCount = lines.length; // Count the number of contacts
+    const contactCount = lines.length;
 
-    // Generate VCF content
     const vcfContent = lines.map((line, index) => 
 `BEGIN:VCARD
 VERSION:3.0
@@ -78,26 +56,22 @@ TEL:${line}
 END:VCARD`
     ).join('\n');
 
-    // Create a Blob with the VCF content
     const blob = new Blob([vcfContent], { type: 'text/vcf' });
     const url = URL.createObjectURL(blob);
 
-    // Create a temporary link to download the file
     const a = document.createElement('a');
     a.href = url;
     a.download = `${fileName}.vcf`;
     document.body.appendChild(a);
     a.click();
 
-    // Clean up
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    // Display the number of contacts in the textbox
     document.getElementById('convertContactCount').value = `Jumlah kontak: ${contactCount}`;
 });
 
-// Fungsi untuk memecah file VCF
+// Fungsi untuk menghitung kontak di menu pecah file VCF
 document.getElementById('splitButton').addEventListener('click', function() {
     const fileInput = document.getElementById('vcfFileInput');
     const file = fileInput.files[0];
@@ -115,7 +89,6 @@ document.getElementById('splitButton').addEventListener('click', function() {
     }
 
     const reader = new FileReader();
-
     reader.onload = function(e) {
         const vcfContent = e.target.result;
         const contacts = vcfContent.split('END:VCARD').filter(entry => entry.trim()).map(entry => entry + 'END:VCARD');
@@ -125,13 +98,11 @@ document.getElementById('splitButton').addEventListener('click', function() {
             return;
         }
 
-        // Split the contacts into chunks
         const chunks = [];
         for (let i = 0; i < contacts.length; i += contactsPerFile) {
             chunks.push(contacts.slice(i, i + contactsPerFile));
         }
 
-        // Generate and download each VCF file
         chunks.forEach((chunk, index) => {
             const vcfContent = chunk.join('\n');
             const blob = new Blob([vcfContent], { type: 'text/vcf' });
@@ -146,6 +117,8 @@ document.getElementById('splitButton').addEventListener('click', function() {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         });
+
+        document.getElementById('splitContactCount').value = `Jumlah kontak: ${contacts.length}`;
     };
 
     reader.readAsText(file);
@@ -215,11 +188,9 @@ document.getElementById('convertVcfToTxtButton').addEventListener('click', funct
             return telMatch ? telMatch[1] : '';
         });
         
-        // Tampilkan konten TXT di textarea
         const txtContent = contacts.join('\n');
         document.getElementById('txtFileContent').value = txtContent;
 
-        // Buat file TXT untuk diunduh
         const blob = new Blob([txtContent], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
